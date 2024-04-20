@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS covid_vaccinations (
 	human_development_index integer
 );
 
+-------------------------------------------------------------------------------------------------------------------
+
 --Incorrect Data Type
 ALTER TABLE covid_vaccinations
 ALTER COLUMN human_development_index TYPE numeric
@@ -48,10 +50,15 @@ ALTER TABLE covid_deaths
 ALTER COLUMN total_cases TYPE numeric
 ;
 
+-------------------------------------------------------------------------------------------------------------------
+
+--Placeholder
 SELECT location, date, total_cases, new_cases, total_deaths, population 
 FROM covid_deaths
 ORDER BY 1, 2
 ;
+
+--------------------------------------------------------------------------------------------------------------------
 
 -- Total cases vs total deaths
 SELECT 
@@ -64,6 +71,8 @@ FROM covid_deaths
 WHERE location = 'Philippines'
 ORDER BY 1, 2
 ;
+
+--------------------------------------------------------------------------------------------------------------------
 
 --Percentage of population infected with covid
 SELECT 
@@ -78,6 +87,8 @@ WHERE location = 'Philippines'
 ORDER BY 1, 2
 ;
 
+-----------------------------------------------------------------------------------------------------------------------
+
 --Highest Countries with Highest Infection Rate Compared to Population
 SELECT 
 	location,  
@@ -89,6 +100,8 @@ GROUP BY 1, 2
 ORDER BY percent_population_infected DESC
 ;
 
+---------------------------------------------------------------------------------------------------------------------
+
 --Countries with Highest Death Count
 SELECT 
 	location,   
@@ -99,6 +112,8 @@ GROUP BY location
 HAVING MAX(cast(total_deaths AS integer)) IS NOT NULL
 ORDER BY total_death_count Desc
 ;
+
+-----------------------------------------------------------------------------------------------------------------------
 
 --Global Numbers
 SELECT 
@@ -113,6 +128,9 @@ HAVING SUM(new_cases) IS NOT NULL and SUM(new_deaths) IS NOT NULL
 ORDER BY 1, 2
 ;
 
+-----------------------------------------------------------------------------------------------------------------------
+
+--Totality of cases vs deaths
 SELECT  
 	SUM(new_cases) AS total_cases, 
 	SUM(new_deaths) AS total_deaths,
@@ -124,6 +142,9 @@ FROM covid_deaths
 ORDER BY 1, 2
 ;
 
+-----------------------------------------------------------------------------------------------------------------------
+
+--Placeholder
 SELECT *
 FROM covid_deaths
 JOIN covid_vaccinations
@@ -131,6 +152,25 @@ JOIN covid_vaccinations
 	AND covid_deaths.date = covid_vaccinations.date
 ;
 
+-----------------------------------------------------------------------------------------------------------------------
+
+--Total vaccinated by arranged by location and date
+SELECT 
+	dea.continent,
+	dea.location,
+	dea.date,
+	dea.population,
+	vac.new_vaccinations,
+	SUM(vac.new_vaccinations) OVER (PARTITION BY dea.location ORDER BY dea.location, dea.date)
+	AS people_vaccinated,
+	(SUM(CAST(vac.new_vaccinations AS numeric)) OVER (PARTITION BY dea.location ORDER BY dea.location, dea.date)/population) * 100
+FROM covid_deaths dea
+JOIN covid_vaccinations vac
+	ON dea.location = vac.location
+	AND dea.date = vac.date
+WHERE dea.continent IS NOT NULL
+ORDER BY 2, 3	
+;
 
 
 
