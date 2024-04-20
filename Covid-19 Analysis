@@ -1,0 +1,144 @@
+--Import Data Base
+CREATE TABLE IF NOT EXISTS covid_vaccinations (
+	iso_code character varying,
+	continent character varying,
+	location character varying,
+	date date,
+	new_tests integer,
+	total_tests	integer,
+	total_tests_per_thousand numeric,
+	new_tests_per_thousand numeric,
+	new_tests_smoothed integer,
+	new_tests_smoothed_per_thousand numeric,
+	positive_rate numeric,
+	tests_per_case numeric,
+	tests_units character varying,
+	total_vaccinations integer,
+	people_vaccinated integer,
+	people_fully_vaccinated integer,
+	new_vaccinations integer,
+	new_vaccinations_smoothed integer,
+	total_vaccinations_per_hundred numeric,
+	people_vaccinated_per_hundred numeric,
+	people_fully_vaccinated_per_hundred numeric,
+	new_vaccinations_smoothed_per_million integer,
+	stringency_index numeric,	
+	population_density numeric,
+	median_age numeric,
+	aged_65_older numeric,
+	aged_70_older numeric,
+	gdp_per_capita numeric,
+	extreme_poverty	numeric,
+	cardiovasc_death_rate numeric,	
+	diabetes_prevalence	numeric,
+	female_smokers numeric,
+	male_smokers numeric,
+	handwashing_facilities numeric,
+	hospital_beds_per_thousand numeric,
+	life_expectancy	numeric,
+	human_development_index integer
+);
+
+--Incorrect Data Type
+ALTER TABLE covid_vaccinations
+ALTER COLUMN human_development_index TYPE numeric
+;
+
+ALTER TABLE covid_deaths
+ALTER COLUMN total_cases TYPE numeric
+;
+
+SELECT location, date, total_cases, new_cases, total_deaths, population 
+FROM covid_deaths
+ORDER BY 1, 2
+;
+
+-- Total cases vs total deaths
+SELECT 
+	location, 
+	date, 
+	total_cases, 
+	total_deaths, 
+	ROUND((total_deaths/total_cases) * 100, 2) AS death_percentage
+FROM covid_deaths
+WHERE location = 'Philippines'
+ORDER BY 1, 2
+;
+
+--Percentage of population infected with covid
+SELECT 
+	location, 
+	date, 
+	total_cases, 
+	population, 
+	ROUND((total_cases/population) * 100, 7) AS cases_percentage
+FROM covid_deaths
+--WHERE location = 'United States'
+WHERE location = 'Philippines'
+ORDER BY 1, 2
+;
+
+--Highest Countries with Highest Infection Rate Compared to Population
+SELECT 
+	location,  
+	population, 
+	MAX(total_cases) AS highest_infection_count, 
+	ROUND(MAX((total_cases/population)) * 100, 2) AS percent_population_infected
+FROM covid_deaths
+GROUP BY 1, 2
+ORDER BY percent_population_infected DESC
+;
+
+--Countries with Highest Death Count
+SELECT 
+	location,   
+	MAX(cast(total_deaths AS integer)) AS total_death_count
+FROM covid_deaths
+WHERE continent IS NOT NULL
+GROUP BY location
+HAVING MAX(cast(total_deaths AS integer)) IS NOT NULL
+ORDER BY total_death_count Desc
+;
+
+--Global Numbers
+SELECT 
+	date, 
+	SUM(new_cases) AS total_cases, 
+	SUM(new_deaths) AS total_deaths,
+	ROUND(SUM(CAST(new_deaths AS numeric))/SUM(CAST(new_cases AS numeric)) * 100, 2) AS death_percentage
+FROM covid_deaths
+WHERE continent IS NOT NULL
+GROUP BY date
+HAVING SUM(new_cases) IS NOT NULL and SUM(new_deaths) IS NOT NULL
+ORDER BY 1, 2
+;
+
+SELECT  
+	SUM(new_cases) AS total_cases, 
+	SUM(new_deaths) AS total_deaths,
+	ROUND(SUM(CAST(new_deaths AS numeric))/SUM(CAST(new_cases AS numeric)) * 100, 2) AS death_percentage
+FROM covid_deaths
+--WHERE continent IS NOT NULL
+--GROUP BY location
+--HAVING SUM(new_cases) IS NOT NULL and SUM(new_deaths) IS NOT NULL
+ORDER BY 1, 2
+;
+
+SELECT *
+FROM covid_deaths
+JOIN covid_vaccinations
+	ON covid_deaths.location = covid_vaccinations.location
+	AND covid_deaths.date = covid_vaccinations.date
+;
+
+
+
+
+
+
+
+
+
+
+
+
